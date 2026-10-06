@@ -55,6 +55,13 @@ REQUIRED_FILES = [
     "docs/export_slides.ps1",
     "docs/screenshot.py",
     "visualization/theme.py",
+    # Deployment descriptors - Streamlit cannot run as a serverless function,
+    # so these pin the supported platforms.
+    ".streamlit/config.toml",
+    "render.yaml",
+    "Dockerfile",
+    ".dockerignore",
+    ".vercelignore",
     "docs/Adaptive_Routing_Presentation.pptx",
     "docs/architecture.png",
     "docs/routing_decision.png",

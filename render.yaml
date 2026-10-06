@@ -1,0 +1,41 @@
+# Render.com blueprint - deploys the dashboard as a native Streamlit service.
+#
+#   1. Push this repository to GitHub (already done).
+#   2. Go to https://render.com -> "New" -> "Blueprint".
+#   3. Select this repository and accept the blueprint.
+#
+# Render detects Streamlit automatically, but declaring it explicitly keeps the
+# build reproducible. The free plan sleeps after inactivity, so the first
+# request after a while takes ~30 s while the service wakes up.
+#
+# NOTE: this file also stops Vercel from treating app.py as a serverless
+# function - see the "Deploying" section of README.md.
+
+services:
+  - type: web
+    name: routeiq
+    runtime: python
+    plan: free
+    region: oregon
+    language: python
+    pythonVersion: "3.12"
+
+    buildCommand: >-
+      pip install --no-cache-dir -r requirements.txt
+    startCommand: >-
+      streamlit run app.py
+      --server.address 0.0.0.0
+      --server.port $PORT
+      --server.enableXsrfProtection false
+      --server.enableCORS false
+
+    healthCheckPath: /_stcore/health
+
+    # Everything needed to show the reported numbers is committed, so the
+    # service starts instantly - no dataset generation or model training.
+    envVars:
+      - key: PYTHONUNBUFFERED
+        value: "1"
+      # Pin the default theme; users can still switch it in the sidebar.
+      - key: ARX_THEME
+        value: Aurora

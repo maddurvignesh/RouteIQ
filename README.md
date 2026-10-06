@@ -35,7 +35,7 @@ pip install -r requirements.txt
 
 python -m ml.dataset        # generate data/congestion_dataset.csv  (5 000 rows)
 python -m ml.train          # train + save models/congestion_model.joblib
-python -m pytest            # 281 tests
+python -m pytest            # 293 tests
 python docs/diagrams.py     # regenerate the figures in docs/
 python docs/build_presentation.py   # regenerate the .pptx deck
 
@@ -101,7 +101,7 @@ adaptive-routing/
 ├── ml/                    dataset, shared definitions, training, prediction
 ├── simulation/            metrics, scenarios, experiments, engine facade
 ├── visualization/         dashboard pages, Plotly charts, topology figure, CSS theme
-├── tests/                 281 unit + headless dashboard integration tests
+├── tests/                 293 unit + headless dashboard integration tests
 ├── data/  models/  results/   generated artefacts
 └── docs/                  report, architecture, methodology, experiments, viva
 ```
@@ -131,6 +131,49 @@ powershell -ExecutionPolicy Bypass -File docs\export_slides.ps1   # slide previe
 
 Before printing, edit `STUDENT` and `GUIDE` at the top of
 `docs/build_presentation.py` and rebuild.
+
+## Deploying
+
+The dashboard is a **Streamlit** app: a long-running server that upgrades
+browser connections to WebSockets. That rules out serverless platforms.
+
+> **Vercel will not work.** It sees the root `app.py`, assumes a serverless
+> Python *function* that must export `app`/`handler`, and fails with
+> *"Found app.py but it does not export a top-level `app`, `application`, or
+> `handler` variable"*. No amount of config changes that — the platform cannot
+> hold a WebSocket open. `.vercelignore` is committed so Vercel stops
+> mis-detecting the entrypoint rather than failing confusingly.
+
+Everything needed to run is committed (the trained model and `results/*.csv`),
+so a deploy boots instantly — no dataset generation or training.
+
+### Option 1 — Streamlit Community Cloud (free, recommended)
+
+1. Go to <https://share.streamlit.io> and sign in with GitHub.
+2. **Deploy an existing app** → choose `maddurvignesh/RouteIQ`, branch `main`.
+3. Set **Main file path** to `app.py` and **Python version** to 3.12.
+4. Click **Deploy**. You get a `*.streamlit.app` URL in about a minute.
+
+No build command is needed. If the app looks unstyled, Streamlit Community
+Cloud is serving the raw CSS — hard-refresh (`Ctrl+Shift+R`).
+
+### Option 2 — Render (free, from the committed blueprint)
+
+1. Go to <https://render.com> → **New** → **Blueprint**.
+2. Select this repository and accept the detected `render.yaml`.
+
+The free plan sleeps when idle, so the first request after a pause takes
+roughly 30 seconds while the service wakes.
+
+### Option 3 — Any container platform
+
+```bash
+docker build -t routeiq .
+docker run -p 8501:8501 routeiq
+```
+
+Works on Railway, Fly.io, Cloud Run, Azure Container Apps and plain Docker.
+Set `ARX_THEME` to pin the default theme.
 
 ## Requirements
 

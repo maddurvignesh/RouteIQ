@@ -1,0 +1,22 @@
+# Vercel is NOT a supported host for this project.
+#
+# Vercel treats a root-level app.py as a serverless Python *function* and
+# requires it to export `app`/`application`/`handler`, which produces:
+#
+#   Error: Found app.py but it does not export a top-level
+#   "app", "application", or "handler" variable.
+#
+# This is a platform mismatch, not a fixable config problem: Streamlit is a
+# long-running server that upgrades connections to WebSockets, and Vercel's
+# serverless functions cannot hold that connection open.
+#
+# Ignoring app.py stops Vercel from mis-detecting the entrypoint. Deploy the
+# dashboard on Streamlit Community Cloud or Render instead - see the
+# "Deploying" section of README.md for the exact steps.
+app.py
+
+# Local-only tooling that has no business in a build.
+docs/_screens/
+docs/_slides/
+pytest.ini
+tests/

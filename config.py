@@ -30,8 +30,15 @@ MODELS_DIR = BASE_DIR / "models"
 RESULTS_DIR = BASE_DIR / "results"
 DOCS_DIR = BASE_DIR / "docs"
 
+# The artefact directories normally already exist in the repository. Creating
+# them at import time keeps a fresh checkout runnable, but a deployed container
+# may mount the source read-only, so a failure here must not be fatal - the app
+# is still perfectly usable, it just cannot persist new files.
 for _dir in (DATA_DIR, MODELS_DIR, RESULTS_DIR, DOCS_DIR):
-    _dir.mkdir(parents=True, exist_ok=True)
+    try:
+        _dir.mkdir(parents=True, exist_ok=True)
+    except OSError:  # pragma: no cover - read-only filesystem
+        pass
 
 DATASET_CSV = DATA_DIR / "congestion_dataset.csv"
 ML_MODEL_PATH = MODELS_DIR / "congestion_model.joblib"

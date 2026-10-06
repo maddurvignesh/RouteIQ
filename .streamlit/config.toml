@@ -1,0 +1,31 @@
+# Streamlit server configuration.
+#
+# Committed so that local runs, Streamlit Community Cloud and container
+# deployments all behave identically. See .streamlit/config.toml docs:
+# https://docs.streamlit.io/library/advanced-features/configuration
+
+[theme]
+# The dashboard injects its own animated theme (visualization/theme.py), so this
+# is only the pre-paint background. Setting it dark avoids a white flash before
+# the CSS lands.
+base = "dark"
+primaryColor = "#2563eb"
+backgroundColor = "#05070f"
+secondaryBackgroundColor = "#0a1024"
+textColor = "#eef2ff"
+font = "sans serif"
+
+[server]
+# Containers and PaaS providers must listen on 0.0.0.0, not localhost.
+address = "0.0.0.0"
+headless = true
+# Allow large uploads if someone regenerates a dataset through the UI.
+maxUploadSize = 50
+# Survive brief idle periods without the session being torn down.
+enableWebsocketCompression = true
+
+[browser]
+gatherUsageStats = false
+
+[runner]
+fastReruns = true
