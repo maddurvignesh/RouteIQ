@@ -14,6 +14,7 @@ asserts the ML row is genuinely different.
 
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
 import pandas as pd
@@ -253,3 +254,41 @@ def test_experiments_doc_lists_every_run(metrics: pd.DataFrame) -> None:
     text = (DOCS_DIR / "experiments.md").read_text(encoding="utf-8")
     for scenario in metrics["scenario"].unique():
         assert scenario in text, f"{scenario} is missing from docs/experiments.md"
+
+
+def test_readme_test_count_is_accurate() -> None:
+    """The README quotes a test count; keep it from going stale.
+
+    Counts the collected tests the same way pytest does (one entry per test
+    case, parameterised cases expanded) and compares it with the number the
+    README claims.
+    """
+    import subprocess
+    import sys
+
+    result = subprocess.run(
+        [sys.executable, "-m", "pytest", "--collect-only", "-q"],
+        cwd=PROJECT_ROOT, capture_output=True, text=True, timeout=600,
+    )
+    assert result.returncode == 0, result.stdout[-2000:]
+
+    collected = 0
+    for line in result.stdout.splitlines():
+        parts = line.strip().split("::")
+        if len(parts) == 2 and parts[0].startswith("tests/") and parts[1]:
+            collected += 1
+
+    assert collected > 0, "could not parse the pytest collection output"
+
+    readme = (PROJECT_ROOT / "README.md").read_text(encoding="utf-8")
+    quoted = {int(n) for n in re.findall(r"(\d+)\s+(?:unit \+ headless )?tests", readme)}
+    assert quoted, "the README no longer mentions a test count"
+    assert quoted == {collected}, (
+        f"README claims {sorted(quoted)} tests but pytest collects {collected}"
+    )
+
+
+def test_readme_names_the_author() -> None:
+    readme = (PROJECT_ROOT / "README.md").read_text(encoding="utf-8")
+    assert "Maddur Vignesh" in readme, "the README should credit the author"
+    assert "github.com/maddurvignesh" in readme, "the README should link the author profile"
